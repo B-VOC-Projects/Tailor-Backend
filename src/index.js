@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const { authenticateToken, authorizeRole } = require("./middleware/authMiddleware");
 
 dotenv.config();
 connectDB();
@@ -16,6 +17,10 @@ app.use(cors());
 
 // Routes
 app.use("/api/auth", authRoutes);
+
+app.get("/api/admin/dashboard", authenticateToken, authorizeRole("admin"), (req, res) => {
+  res.json({ message: "Welcome Admin!" });
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
