@@ -3,7 +3,8 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
-const { authenticateToken, authorizeRole } = require("./middleware/authMiddleware");
+const adminRoutes = require("./routes/adminRoutes");
+const { authMiddleware, authorizeRole } = require("./middleware/authMiddleware");
 
 dotenv.config();
 connectDB();
@@ -17,8 +18,9 @@ app.use(cors());
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
 
-app.get("/api/admin/dashboard", authenticateToken, authorizeRole("admin"), (req, res) => {
+app.get("/api/admin/dashboard",authMiddleware , authorizeRole("admin"), (req, res) => {
   res.json({ message: "Welcome Admin!" });
 });
 
