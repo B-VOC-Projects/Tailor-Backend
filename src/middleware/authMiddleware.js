@@ -1,5 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require('../models/userModel')
+const Staff = require('../models/staffModel')
+
 
 exports.authMiddleware = async (req, res, next) => {
     try {
@@ -12,16 +14,34 @@ exports.authMiddleware = async (req, res, next) => {
         // Verify the token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        const user = await User.findById(decoded.id);
-        if (!user) {
+        // Try to find the user in the User model
+        let user = await User.findById(decoded.id);
+        let staff = await Staff.findById(decoded.id);
+
+        if (!user && !staff) {
             return res.status(401).json({ message: "User not found" });
         }
-        
-        req.user = user;
+
+        req.user = user || staff; // Attach the found user (either staff or user) to the request
+        req.role = user ? "user" : "staff"; // Identify whether it's a user or staff
+
         next();
     } catch (error) {
         return res.status(401).json({ message: "Invalid or Expired Token" });
     }
+};
+
+exports.authorize = (roles) => {
+    return (req, res, next) => {
+        const userRole = req.user?.role; // Get role from user (either staff or regular user)
+
+        
+        if (!userRole || !roles.includes(userRole)) {
+            return res.status(403).json({ message: "Unauthorized access" });
+        }
+
+        next();
+    };
 };
 
 // Middleware to check if user is Admin
@@ -33,49 +53,5 @@ exports.isAdmin = (req, res, next) => {
     }
 };
 
-exports.authorizeRole = (role) => (req, res, next) => {
-    if (req.user.role !== role) {
-        return res.status(403).json({ message: "Access Forbidden" });
-    }
-    next();
-};
 
-// exports.authenticateToken = (req, res, next) => {
-//     const token = req.header("Authorization");
-//     if (!token) return res.status(403).json({ message: "Access Denied" });
-//     try {
-//         const decoded = jwt.verify(token.split(" ")[1], process.env.JWT_SECRET);
-//         req.user = decoded;
-//         next();
-//     } catch (error) {
-//         res.status(401).json({ message: "Invalid Token" });
-//     }
-// };
-
-
-// const jwt = require("jsonwebtoken");
-// const User = require("../models/userModel");
-
-// const protect = async (req, res, next) => {
-//   let token;
-
-//   if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
-//     try {
-//       token = req.headers.authorization.split(" ")[1];
-
-//       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-//       req.user = await User.findById(decoded.id).select("-password");
-
-//       next();
-//     } catch (error) {
-//       res.status(401).json({ message: "Not authorized, token failed" });
-//     }
-//   }
-
-//   if (!token) {
-//     res.status(401).json({ message: "Not authorized, no token" });
-//   }
-// };
-
-// module.exports = { protect };
 

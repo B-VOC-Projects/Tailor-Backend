@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const Staff = require("../models/staffModel");
 
 // Create Staff and Return Username & Password
@@ -25,6 +26,25 @@ const createStaff = async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+
+// Staff Login
+const loginStaff = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        const staff = await Staff.findOne({ email });
+        if (!staff) return res.status(400).json({ message: "Invalid credentials" });
+
+        const isMatch = await bcrypt.compare(password, staff.password);
+        if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+
+        const token = jwt.sign({ id: staff._id, role: staff.role }, process.env.JWT_SECRET, { expiresIn: "30d" });
+
+        res.status(200).json({ message: "Login successful", token, staff });
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error });
     }
 };
 
@@ -82,4 +102,4 @@ const deleteStaff = async (req, res) => {
     }
 };
 
-module.exports = { createStaff, getAllStaff, resetStaffPassword, deleteStaff };
+module.exports = { createStaff, loginStaff , getAllStaff, resetStaffPassword, deleteStaff };

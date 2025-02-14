@@ -2,9 +2,13 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
+
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
-const { authMiddleware, authorizeRole } = require("./middleware/authMiddleware");
+const measurementRoutes = require("./routes/measurementRoutes");
+const customerRoutes = require("./routes/customerRoutes");
+const emailRoutes = require("./routes/emailRoutes")
+// const { authMiddleware, authorizeRole } = require("./middleware/authMiddleware");
 
 dotenv.config();
 connectDB();
@@ -19,10 +23,14 @@ app.use(cors());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/measurements", measurementRoutes);
+app.use("/api/customers", customerRoutes)
+app.use("/api/email",emailRoutes)
 
-app.get("/api/admin/dashboard",authMiddleware , authorizeRole("admin"), (req, res) => {
-  res.json({ message: "Welcome Admin!" });
-});
+
+// app.get("/api/admin/dashboard",authMiddleware , authorizeRole("admin"), (req, res) => {
+//   res.json({ message: "Welcome Admin!" });
+// });
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
