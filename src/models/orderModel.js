@@ -1,10 +1,10 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const orderSchema = new mongoose.Schema({
-    customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
-    assignedStaff: { type: mongoose.Schema.Types.ObjectId, ref: 'Staff' },
-    status: { type: String, enum: ['pending', 'completed'], default: 'pending' },
-    details: String,
-});
+const OrderSchema = new mongoose.Schema({
+    customer: { type: mongoose.Schema.Types.ObjectId, ref: "Customer", required: true },
+    assigned_to: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Staff assigned
+    status: { type: String, enum: ["pending", "in_progress", "completed"], default: "pending" },
+    estimated_completion: { type: Date },
+},{ timestamps: true });
 
-module.exports = mongoose.model('Order', orderSchema);
+module.exports = mongoose.model("Order", OrderSchema);
